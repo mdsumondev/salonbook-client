@@ -3,14 +3,9 @@
 import * as React from "react"
 import Link from "next/link"
 import { Menu, Scissors, X } from "lucide-react"
-import { Playfair_Display } from "next/font/google"
 
 import { cn } from "@workspace/ui/lib/utils"
-
-const display = Playfair_Display({
-  subsets: ["latin"],
-  weight: ["500", "600"],
-})
+import { playfair } from "./fonts"
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -64,7 +59,7 @@ export default function Header() {
           </span>
           <span
             className={cn(
-              display.className,
+              playfair.className,
               "text-[22px] leading-none font-semibold tracking-[-0.01em] text-[#3B2739] sm:text-2xl lg:text-[26px]"
             )}
           >
