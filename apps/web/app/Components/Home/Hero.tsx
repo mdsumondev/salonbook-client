@@ -23,7 +23,7 @@ const HeroSection = () => {
         className="pointer-events-none absolute top-16 hidden size-[30rem] rounded-full border border-[#3B2739]/10 xl:-left-[28rem] xl:block 2xl:-left-[22rem]"
       />
 
-      <div className="mx-auto grid w-full max-w-[1240px] items-center gap-12 px-5 py-12 sm:gap-14 sm:px-6 sm:py-16 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-20 xl:gap-16 xl:py-24">
+      <div className="relative container mx-auto grid items-center gap-12 px-5 py-12 sm:gap-14 sm:px-6 sm:py-16 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:py-20 xl:gap-16 xl:py-24">
         {/* Copy */}
         <div className="relative max-w-[34rem]">
           <p className="text-[11px] font-semibold tracking-[0.2em] text-[#B07A8C] uppercase sm:text-xs">
