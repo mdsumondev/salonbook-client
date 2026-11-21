@@ -99,7 +99,7 @@ export default function Header() {
           </Link>
 
           <Link
-            href="/get-started"
+            href="/sign-up"
             className={cn(
               "hidden h-11 items-center justify-center rounded-full bg-[#3B2739] px-6 text-base font-semibold text-[#FAF8F4] transition-colors hover:bg-[#4C3549] sm:inline-flex lg:h-[52px] lg:px-7",
               focusRing
@@ -161,7 +161,7 @@ export default function Header() {
                 Sign In
               </Link>
               <Link
-                href="/get-started"
+                href="/sign-up"
                 onClick={closeMenu}
                 className={cn(
                   "inline-flex h-11 items-center justify-center rounded-full bg-[#3B2739] text-base font-semibold text-[#FAF8F4] transition-colors hover:bg-[#4C3549]",

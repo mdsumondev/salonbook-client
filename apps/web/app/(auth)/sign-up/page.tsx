@@ -3,10 +3,13 @@
 import * as React from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Eye, EyeOff, Lock, Mail, Scissors, User } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail, Scissors, User, Upload } from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
 import { playfair } from "@/app/Components/fonts"
+import { signUp } from "@/lib/auth-client"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?auto=format&fit=crop&w=1600&q=80"
@@ -45,13 +48,95 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-export default function SignInPage() {
+export default function SignUpPage() {
   const [showPassword, setShowPassword] = React.useState(false)
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null)
+  const [imageURL, setImageURL] = React.useState<string | null>(null)
+
+  const route = useRouter()
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onloadend = async () => {
+      setImagePreview(reader.result as string)
+
+      const formData = new FormData()
+      formData.append("image", file)
+
+      try {
+        const res = await fetch(
+          `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMAGEBB_KEY}`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        )
+
+        const result = await res.json()
+
+        if (!res.ok || !result?.data?.url) {
+          throw new Error(result?.error?.message ?? "Image upload failed")
+        }
+
+        setImageURL(result.data.url)
+        toast.success("Photo uploaded", {
+          description: "Your profile photo is ready.",
+        })
+      } catch {
+        setImagePreview(null)
+        setImageURL(null)
+        toast.error("Photo upload failed", {
+          description: "Please try a different image.",
+        })
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const form = new FormData(e.currentTarget)
+    const userInfo = Object.fromEntries(form.entries())
+
+    try {
+      const { error } = await signUp.email({
+        name: userInfo.fullName as string,
+        email: userInfo.email as string,
+        password: userInfo.password as string,
+        image: imageURL ?? undefined,
+        callbackURL: "/",
+      })
+
+      if (error) {
+        toast.error("Registration failed", {
+          description:
+            error.message ?? "Please check your details and try again.",
+        })
+        return
+      }
+
+      toast.success("Registration successful", {
+        description: "Your account has been created successfully.",
+      })
+      route.push("/sign-in")
+    } catch {
+      toast.error("Something went wrong", {
+        description: "We couldn't create your account. Please try again.",
+      })
+    }
+  }
 
   return (
-    <main className="grid min-h-svh grid-cols-1 bg-[#FAF8F4] lg:grid-cols-2">
+    <main className="grid min-h-svh grid-cols-1 bg-[#FAF8F4] lg:h-svh lg:grid-cols-2 lg:overflow-hidden">
       {/* Hero image */}
-      <aside className="relative h-[240px] w-full sm:h-[300px] lg:h-auto lg:min-h-svh">
+      <aside className="relative h-[240px] w-full sm:h-[300px] lg:h-full">
         <Image
           src={HERO_IMAGE}
           alt="Interior of a luxury salon with styling chairs and mirrors"
@@ -79,7 +164,7 @@ export default function SignInPage() {
       </aside>
 
       {/* Form */}
-      <section className="flex flex-col justify-center px-5 py-10 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
+      <section className="flex flex-col justify-center px-5 py-6 sm:px-8 sm:py-8 lg:h-full lg:overflow-y-auto lg:px-12 lg:py-8">
         <div className="mx-auto w-full max-w-[440px]">
           <Link
             href="/"
@@ -102,32 +187,63 @@ export default function SignInPage() {
             </span>
           </Link>
 
-          <p className="mt-12 text-[11px] font-bold tracking-[0.2em] text-[#A57C8A] uppercase sm:mt-14">
+          <p className="mt-6 text-[11px] font-bold tracking-[0.2em] text-[#A57C8A] uppercase sm:mt-8">
             Create your account
           </p>
 
           <h1
             className={cn(
               playfair.className,
-              "mt-4 text-[34px] leading-tight font-medium text-[#2E222B] sm:text-[38px]"
+              "mt-2 text-[30px] leading-tight font-medium text-[#2E222B] sm:text-[34px]"
             )}
           >
             Join SalonBook
           </h1>
 
-          <p className="mt-3 max-w-[400px] text-[15px] leading-6 text-[#6B6560]">
+          <p className="mt-2 max-w-[400px] text-[14px] leading-6 text-[#6B6560]">
             Manage appointments and keep your self-care schedule in one
             beautiful place.
           </p>
 
-          <form
-            className="mt-8"
-            onSubmit={(event) => {
-              // TODO: connect to the auth provider.
-              event.preventDefault()
-            }}
-          >
+          <form className="mt-6" onSubmit={handleSignUp}>
+            {/* Profile Image Upload */}
             <div>
+              <label className={labelClass}>Profile Photo</label>
+              <div className="mt-2 flex items-center gap-4">
+                <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#E3DCD3] bg-white">
+                  {imagePreview ? (
+                    <Image
+                      src={imagePreview}
+                      alt="Profile preview"
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <User className="size-6 text-[#9A918A]" />
+                  )}
+                </div>
+                <label
+                  htmlFor="profile-image"
+                  className={cn(
+                    "flex h-[42px] cursor-pointer items-center gap-2 rounded-lg border border-[#E3DCD3] bg-white px-4 text-xs font-semibold text-[#2A2523] transition-colors hover:bg-[#F5F1EB]",
+                    focusRing
+                  )}
+                >
+                  <Upload className="size-3.5 text-[#9A918A]" />
+                  Upload Photo
+                  <input
+                    id="profile-image"
+                    name="profileImage"
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleImageChange}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-4">
               <label htmlFor="full-name" className={labelClass}>
                 Full name
               </label>
@@ -149,7 +265,7 @@ export default function SignInPage() {
               </div>
             </div>
 
-            <div className="mt-5">
+            <div className="mt-4">
               <label htmlFor="email" className={labelClass}>
                 Email address
               </label>
@@ -171,7 +287,37 @@ export default function SignInPage() {
               </div>
             </div>
 
-            <div className="mt-5">
+            {/* Role Selection */}
+            {/* <div className="mt-4">
+              <label htmlFor="role" className={labelClass}>
+                Select Role
+              </label>
+              <div className="relative mt-2">
+                <ShieldCheck
+                  className={fieldIconClass}
+                  strokeWidth={1.75}
+                  aria-hidden="true"
+                />
+                <select
+                  id="role"
+                  name="role"
+                  defaultValue="customer"
+                  required
+                  className={cn(
+                    fieldClass,
+                    "cursor-pointer appearance-none bg-white pr-8 text-[#2A2523]"
+                  )}
+                >
+                  <option value="customer">Customer</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <div className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[#9A918A]">
+                  ▼
+                </div>
+              </div>
+            </div> */}
+
+            <div className="mt-4">
               <label htmlFor="password" className={labelClass}>
                 Password
               </label>
@@ -204,7 +350,7 @@ export default function SignInPage() {
                   )}
                 </button>
               </div>
-              <p className="mt-2 text-[13px] leading-5 text-[#8A817A]">
+              <p className="mt-1.5 text-[12px] leading-5 text-[#8A817A]">
                 Use at least 8 characters with a mix of letters and numbers.
               </p>
             </div>
@@ -212,7 +358,7 @@ export default function SignInPage() {
             <button
               type="submit"
               className={cn(
-                "mt-7 h-[52px] w-full rounded-full bg-[#3B2739] text-[15px] font-semibold text-[#FAF8F4] transition-colors hover:bg-[#4C3549]",
+                "mt-6 h-[52px] w-full rounded-full bg-[#3B2739] text-[15px] font-semibold text-[#FAF8F4] transition-colors hover:bg-[#4C3549]",
                 focusRing
               )}
             >
@@ -220,7 +366,7 @@ export default function SignInPage() {
             </button>
           </form>
 
-          <div className="my-6 flex items-center gap-4">
+          <div className="my-5 flex items-center gap-4">
             <span className="h-px flex-1 bg-[#E3DCD3]" />
             <span className="text-xs text-[#8A817A]">or continue with</span>
             <span className="h-px flex-1 bg-[#E3DCD3]" />
@@ -237,7 +383,7 @@ export default function SignInPage() {
             Continue with Google
           </button>
 
-          <p className="mt-8 text-center text-sm text-[#6B6560]">
+          <p className="mt-6 text-center text-sm text-[#6B6560]">
             Already have an account?{" "}
             <Link
               href="/sign-in"
