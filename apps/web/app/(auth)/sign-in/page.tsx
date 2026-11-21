@@ -7,6 +7,7 @@ import { Eye, EyeOff, Lock, Mail, Scissors } from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
 import { playfair } from "@/app/Components/fonts"
+import { signIn } from "@/lib/auth-client"
 
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?auto=format&fit=crop&w=1600&q=80"
@@ -47,6 +48,24 @@ function GoogleIcon({ className }: { className?: string }) {
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = React.useState(false)
+  const [remember, setRemember] = React.useState(false)
+
+  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    const formData = new FormData(e.currentTarget)
+
+    const userInfo = Object.fromEntries(formData.entries())
+    console.log(userInfo, remember)
+    const { data, error } = await signIn.email({
+      email: userInfo.email as string,
+      password: userInfo.password as string,
+      rememberMe: remember,
+      callbackURL: "/",
+    })
+
+    console.log("sign In", data, error)
+  }
 
   return (
     <main className="grid min-h-svh grid-cols-1 bg-[#FAF8F4] lg:h-svh lg:min-h-0 lg:grid-cols-2 lg:overflow-hidden">
@@ -120,13 +139,7 @@ export default function SignInPage() {
             waiting.
           </p>
 
-          <form
-            className="mt-6"
-            onSubmit={(event) => {
-              // TODO: connect to the auth provider.
-              event.preventDefault()
-            }}
-          >
+          <form className="mt-6" onSubmit={handleSignIn}>
             <div>
               <label htmlFor="email" className={labelClass}>
                 Email address
@@ -189,6 +202,7 @@ export default function SignInPage() {
                 className="flex items-center gap-2 text-sm text-[#4A4441]"
               >
                 <input
+                  onChange={() => setRemember(!remember)}
                   id="remember-me"
                   name="rememberMe"
                   type="checkbox"
