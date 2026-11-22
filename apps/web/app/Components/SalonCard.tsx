@@ -12,7 +12,7 @@ const focusRing =
 const formatPrice = (price: number) =>
   `৳${new Intl.NumberFormat("en-US").format(price)}`
 
-const SalonCard = ({ feature }: { feature: SalonType }) => {
+const SalonCard = ({ salons }: { salons: SalonType }) => {
   const {
     _id,
     serviceName,
@@ -22,9 +22,7 @@ const SalonCard = ({ feature }: { feature: SalonType }) => {
     estimatedDuration,
     serviceImage,
     serviceStatus,
-  } = feature
-
-  console.log("Feature data", feature)
+  } = salons
 
   return (
     <article

@@ -78,7 +78,7 @@ const page = async () => {
         <div className="mt-10 grid grid-cols-1 gap-5 sm:mt-12 sm:grid-cols-2 lg:grid-cols-3">
           <Suspense fallback={<Spinner className="size-8" />}>
             {features.map((feature) => (
-              <SalonCard key={feature._id} feature={feature} />
+              <SalonCard key={feature._id} salons={feature} />
             ))}
           </Suspense>
         </div>
