@@ -6,6 +6,7 @@ import { Menu, Scissors, X } from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
 import { playfair } from "./fonts"
+import { useSession } from "@/lib/auth-client"
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -37,6 +38,8 @@ export default function Header() {
   }, [open])
 
   const closeMenu = () => setOpen(false)
+
+  const { data } = useSession()
 
   return (
     <header className="w-full bg-[#FAF8F4]">

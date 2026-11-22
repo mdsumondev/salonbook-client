@@ -6,6 +6,7 @@ const client = new MongoClient(process.env.MONGODB_URI as string)
 const db = client.db("users")
 
 export const auth = betterAuth({
+  database: mongodbAdapter(db),
   user: {
     additionalFields: {
       role: {
